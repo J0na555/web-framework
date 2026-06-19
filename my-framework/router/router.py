@@ -7,5 +7,8 @@ class Router:
 
     def get_handler(self, method, path):
         return self.routes.get((method, path), None)
+
+    def resolve(self, method, path):
+        return self.get_handler(method, path)
     
 # this matches route with handler 
