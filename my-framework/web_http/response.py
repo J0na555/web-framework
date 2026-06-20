@@ -9,10 +9,14 @@ class Response:
         status_line = f"HTTP/1.1 {self.status} {reason}\r\n"
         headers = ''
 
-        if "Content-Type" not in self.headers:
-            self.headers["Content-Type"] = "text/html"
-
         body_bytes = self.body.encode() if isinstance(self.body, str) else self.body
+
+        if "Content-Type" not in self.headers:
+            if body_bytes.startswith(b"{") or body_bytes.startswith(b"["):
+                self.headers["Content-Type"] = "application/json"
+            else:
+                self.headers["Content-Type"] = "text/html"
+
         self.headers["Content-Length"] = str(len(body_bytes))
 
         for key, value in self.headers.items():
