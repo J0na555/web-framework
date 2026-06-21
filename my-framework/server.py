@@ -1,10 +1,18 @@
 import socket
 from core.app import App
+from core.middleware import run_middlewares
 from web_http.parser import HTTPParser
 from web_http.response import Response
+from middleware.logger import logger
+from middleware.auth import auth
+from middleware.cors import cors
 
 app = App()
 parser = HTTPParser()
+
+app.use(logger)
+app.use(auth)
+app.use(cors)
 
 @app.route("/")
 def home(request):
@@ -21,6 +29,10 @@ def create_user(request):
     if request.body_json is None:
         return Response.json({"error": "invalid or missing JSON body"}, status=400)
     return Response.json({"created": True, "user": request.body_json}, status=201)
+
+@app.route("/api/users")
+def list_users(request):
+    return Response.json({"users": [{"id": 1, "name": "Alice"}, {"id": 2, "name": "Bob"}]})
 
 @app.route("/login", method="POST")
 def login(request):
@@ -106,11 +118,14 @@ while True:
 
     if handler:
         request.route_params = route_params
-        result = handler(request)
-        if isinstance(result, Response):
-            response = result
-        else:
-            response = Response(str(result))
+
+        def handler_fn(req, h=handler):
+            result = h(req)
+            if isinstance(result, Response):
+                return result
+            return Response(str(result))
+
+        response = run_middlewares(app.middlewares, request, handler_fn)
     else:
         response = Response("404 Not Found", status=404)
 
