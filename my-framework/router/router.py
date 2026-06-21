@@ -1,14 +1,15 @@
+from router.radix_tree import RadixTree
+
+
 class Router:
     def __init__(self):
-        self.routes = {}
+        self.tree = RadixTree()
 
     def add_route(self, method, path, handler):
-        self.routes[(method, path)] = handler
-
-    def get_handler(self, method, path):
-        return self.routes.get((method, path), None)
+        self.tree.insert(method, path, handler)
 
     def resolve(self, method, path):
-        return self.get_handler(method, path)
-    
-# this matches route with handler 
+        return self.tree.search(method, path)
+
+
+# this matches route with handler

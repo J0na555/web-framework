@@ -33,6 +33,22 @@ def login(request):
         return json.dumps({"token": "abc123"})
     return json.dumps({"error": "invalid credentials"})
 
+@app.route("/users/:id")
+def get_user(request):
+    user_id = request.route_params["id"]
+    return json.dumps({"user_id": user_id, "name": f"User {user_id}"})
+
+@app.route("/users/:id/posts/:post_id")
+def get_user_post(request):
+    user_id = request.route_params["id"]
+    post_id = request.route_params["post_id"]
+    return json.dumps({"user_id": user_id, "post_id": post_id})
+
+@app.route("/static/*")
+def serve_static(request):
+    filepath = request.route_params["*"]
+    return json.dumps({"file": filepath})
+
 server = socket.socket()
 server.bind(("localhost", 8080))
 server.listen()
@@ -76,12 +92,13 @@ while True:
 
     request = parser.parse(raw_data)
 
-    handler = app.router.resolve(
+    handler, route_params = app.router.resolve(
         request.method,
         request.path
     )
 
     if handler:
+        request.route_params = route_params
         result = handler(request)
         response = Response(result)
     else:
