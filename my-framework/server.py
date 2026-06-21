@@ -1,4 +1,3 @@
-import json
 import socket
 from core.app import App
 from web_http.parser import HTTPParser
@@ -9,45 +8,53 @@ parser = HTTPParser()
 
 @app.route("/")
 def home(request):
-    return "wazzzap"
+    return Response.html("<h1>wazzzap</h1>")
 
 @app.route("/search")
 def search(request):
     q = request.params.get("q", "")
     page = request.params.get("page", "1")
-    return json.dumps({"query": q, "page": page, "results": [f"result {i}" for i in range(1, 4)]})
+    return Response.json({"query": q, "page": page, "results": [f"result {i}" for i in range(1, 4)]})
 
 @app.route("/api/users", method="POST")
 def create_user(request):
     if request.body_json is None:
-        return json.dumps({"error": "invalid or missing JSON body"})
-    return json.dumps({"created": True, "user": request.body_json})
+        return Response.json({"error": "invalid or missing JSON body"}, status=400)
+    return Response.json({"created": True, "user": request.body_json}, status=201)
 
 @app.route("/login", method="POST")
 def login(request):
     if request.form_data is None:
-        return json.dumps({"error": "missing form data"})
+        return Response.json({"error": "missing form data"}, status=400)
     username = request.form_data.get("username", "")
     password = request.form_data.get("password", "")
     if username == "admin" and password == "secret":
-        return json.dumps({"token": "abc123"})
-    return json.dumps({"error": "invalid credentials"})
+        return Response.json({"token": "abc123"})
+    return Response.json({"error": "invalid credentials"}, status=401)
 
 @app.route("/users/:id")
 def get_user(request):
     user_id = request.route_params["id"]
-    return json.dumps({"user_id": user_id, "name": f"User {user_id}"})
+    return Response.json({"user_id": user_id, "name": f"User {user_id}"})
 
 @app.route("/users/:id/posts/:post_id")
 def get_user_post(request):
     user_id = request.route_params["id"]
     post_id = request.route_params["post_id"]
-    return json.dumps({"user_id": user_id, "post_id": post_id})
+    return Response.json({"user_id": user_id, "post_id": post_id})
 
 @app.route("/static/*")
 def serve_static(request):
     filepath = request.route_params["*"]
-    return json.dumps({"file": filepath})
+    return Response.json({"file": filepath})
+
+@app.route("/old-page")
+def old_page(request):
+    return Response.redirect("/")
+
+@app.route("/gone")
+def gone(request):
+    return Response.json({"error": "resource removed"}, status=410)
 
 server = socket.socket()
 server.bind(("localhost", 8080))
@@ -100,12 +107,12 @@ while True:
     if handler:
         request.route_params = route_params
         result = handler(request)
-        response = Response(result)
+        if isinstance(result, Response):
+            response = result
+        else:
+            response = Response(str(result))
     else:
-        response = Response(
-            "404 Not Found",
-            status=404
-        )
+        response = Response("404 Not Found", status=404)
 
     client.send(response.build())
     client.close()
