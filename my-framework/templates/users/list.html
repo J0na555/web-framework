@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ title }}</title>
+</head>
+<body>
+    <nav>
+        <a href="/">Home</a> |
+        <a href="/users">Users</a>
+    </nav>
+    <h1>{{ title }}</h1>
+    <ul>
+        {% for user in users %}
+        <li><a href="/users/{{ user }}">{{ user }}</a></li>
+        {% endfor %}
+    </ul>
+    {% if message %}
+    <p>{{ message }}</p>
+    {% endif %}
+</body>
+</html>

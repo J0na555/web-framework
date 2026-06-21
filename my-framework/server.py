@@ -3,6 +3,7 @@ from core.app import App
 from core.middleware import run_middlewares
 from web_http.parser import HTTPParser
 from web_http.response import Response
+from template.loader import render
 from middleware.logger import logger
 from middleware.auth import auth
 from middleware.cors import cors
@@ -16,7 +17,26 @@ app.use(cors)
 
 @app.route("/")
 def home(request):
-    return Response.html("<h1>wazzzap</h1>")
+    return render("home.html", {"title": "Home", "body": "Welcome to the framework"})
+
+@app.route("/users", method="GET")
+def users_list(request):
+    return render("users/list.html", {
+        "title": "Users",
+        "users": ["Alice", "Bob", "Charlie"],
+        "message": request.params.get("msg", "")
+    })
+
+@app.route("/users/:id", method="GET")
+def users_show(request):
+    user_id = request.route_params["id"]
+    return render("users/show.html", {
+        "title": f"User {user_id}",
+        "user_id": user_id,
+        "name": f"User {user_id}",
+        "email": f"user{user_id}@example.com",
+        "active": True
+    })
 
 @app.route("/search")
 def search(request):
@@ -31,7 +51,7 @@ def create_user(request):
     return Response.json({"created": True, "user": request.body_json}, status=201)
 
 @app.route("/api/users")
-def list_users(request):
+def list_users_api(request):
     return Response.json({"users": [{"id": 1, "name": "Alice"}, {"id": 2, "name": "Bob"}]})
 
 @app.route("/login", method="POST")
@@ -44,12 +64,12 @@ def login(request):
         return Response.json({"token": "abc123"})
     return Response.json({"error": "invalid credentials"}, status=401)
 
-@app.route("/users/:id")
-def get_user(request):
+@app.route("/api/users/:id")
+def get_user_api(request):
     user_id = request.route_params["id"]
     return Response.json({"user_id": user_id, "name": f"User {user_id}"})
 
-@app.route("/users/:id/posts/:post_id")
+@app.route("/api/users/:id/posts/:post_id")
 def get_user_post(request):
     user_id = request.route_params["id"]
     post_id = request.route_params["post_id"]
