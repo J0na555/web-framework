@@ -1,5 +1,7 @@
 # My Framework
 
+> 🚧 under construction
+
 A lightweight Python web framework built from scratch on raw sockets. No dependencies.
 
 ## Features
@@ -21,7 +23,7 @@ Server runs on `http://localhost:8080`.
 
 ## Project Structure
 
-```
+```bash
 my-framework/
 ├── server.py              # Entry point
 ├── core/
@@ -105,6 +107,7 @@ app.use(my_middleware)
 ```
 
 Built-in middleware in `middleware/`:
+
 - `logger` — logs method, path, status, elapsed time
 - `auth` — blocks `/api/*` without `Authorization` header
 - `cors` — adds CORS headers
@@ -124,8 +127,8 @@ def users_list(request):
 
 Template syntax:
 ```
-{{ variable }}                      # variable substitution
-{% for item in list %}...{% endfor %}  # loop
+{{ variable }}                          # variable substitution
+{% for item in list %}...{% endfor %}   # loop
 {% if var %}...{% endif %}              # conditional
 ```
 
